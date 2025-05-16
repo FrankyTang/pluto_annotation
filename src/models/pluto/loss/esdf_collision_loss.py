@@ -7,6 +7,9 @@ from torch import Tensor
 
 
 class ESDFCollisionLoss(nn.Module):
+    """
+    [tzy]有向距离场碰撞损失
+    """
     def __init__(
         self,
         num_circles=3,

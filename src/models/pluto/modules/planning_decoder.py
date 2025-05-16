@@ -13,13 +13,16 @@ class DecoderLayer(nn.Module):
     def __init__(self, dim, num_heads, mlp_ratio, dropout) -> None:
         super().__init__()
         self.dim = dim
-
+        
+        # [tzy] Lateral SelfAttn from paper 
         self.r2r_attn = nn.MultiheadAttention(
             dim, num_heads, dropout=dropout, batch_first=True
         )
+        # [tzy] Logitudinal SelfAttn from paper 
         self.m2m_attn = nn.MultiheadAttention(
             dim, num_heads, dropout=dropout, batch_first=True
         )
+        # [tzy] Query2SceneCrossAttn from paper
         self.cross_attn = nn.MultiheadAttention(
             dim, num_heads, dropout=dropout, batch_first=True
         )
@@ -101,8 +104,8 @@ class PlanningDecoder(nn.Module):
     ) -> None:
         super().__init__()
 
-        self.num_mode = num_mode
-        self.future_steps = future_steps
+        self.num_mode = num_mode # [tzy] 输出多少条轨迹
+        self.future_steps = future_steps # [tzy] 未来时间长度
         self.yaw_constraint = yaw_constraint
         self.cat_x = cat_x
 
@@ -174,6 +177,7 @@ class PlanningDecoder(nn.Module):
             )
             assert torch.isfinite(q).all()
 
+        # [tzy] TODO:做什么？
         if self.cat_x:
             x = enc_emb[:, 0].unsqueeze(1).unsqueeze(2).repeat(1, R, self.num_mode, 1)
             q = self.cat_x_proj(torch.cat([q, x], dim=-1))
@@ -183,6 +187,7 @@ class PlanningDecoder(nn.Module):
         vel = self.vel_head(q).view(bs, R, self.num_mode, self.future_steps, 2)
         pi = self.pi_head(q).squeeze(-1)
 
+        # [tzy] traj是轨迹，pi是得分
         traj = torch.cat([loc, yaw, vel], dim=-1)
 
         return traj, pi

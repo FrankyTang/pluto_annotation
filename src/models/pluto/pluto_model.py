@@ -32,7 +32,7 @@ class PlanningModel(TorchModuleWrapper):
         polygon_channel=6,
         history_channel=9,
         history_steps=21,
-        future_steps=80,
+        future_steps=80, #[tzy]未来几秒，单位是ms
         encoder_depth=4,
         decoder_depth=4,
         drop_path=0.2,
@@ -142,15 +142,20 @@ class PlanningModel(TorchModuleWrapper):
         polygon_key_padding = ~(polygon_mask.any(-1))
         key_padding_mask = torch.cat([agent_key_padding, polygon_key_padding], dim=-1)
 
+        # [tzy] Ea for paper
         x_agent = self.agent_encoder(data)
+        # [tzy]Ep for paper
         x_polygon = self.map_encoder(data)
+        # [tzy]Eo for paper
         x_static, static_pos, static_key_padding = self.static_objects_encoder(data)
 
         x = torch.cat([x_agent, x_polygon, x_static], dim=1)
 
+        # [tzy]Eav for paper
         pos = torch.cat([pos, static_pos], dim=1)
         pos_embed = self.pos_emb(pos)
 
+        # [tzy] Scene Encoding
         key_padding_mask = torch.cat([key_padding_mask, static_key_padding], dim=-1)
         x = x + pos_embed
 
@@ -158,6 +163,7 @@ class PlanningModel(TorchModuleWrapper):
             x = blk(x, key_padding_mask=key_padding_mask, return_attn_weights=False)
         x = self.norm(x)
 
+        # [tzy] a prediction for each dynamic agent for paper
         prediction = self.agent_predictor(x[:, 1:A])
 
         ref_line_available = data["reference_line"]["position"].shape[1] > 0
