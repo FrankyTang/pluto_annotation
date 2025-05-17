@@ -25,7 +25,7 @@ from src.utils.utils import shift_and_rotate_img
 MAP_CONTRAST_TYPE = 0
 AGENT_CONTRAST_TYPE = 1
 
-
+# [tzy] Contrastive Imitation Learning Framework for paper
 class ContrastiveScenarioGenerator(AbstractAugmentor):
     def __init__(
         self,

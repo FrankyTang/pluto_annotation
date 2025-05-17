@@ -128,6 +128,13 @@ The code is under cleaning and will be released gradually.
 - [x] feature builder & model
 - [x] initial repo & paper
 
+## Annotation
+The key work from paper
+- [x] A longitudinal-lateral aware model architecture
+- [x] Differentiable Auxiliary Loss
+- [] Contrastive Imitation Learning Framework
+- [] Data augmentations
+
 ## Citation
 
 If you find this repo useful, please consider giving us a star 🌟 and citing our related paper.

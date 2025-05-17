@@ -138,10 +138,12 @@ class LightningTrainer(pl.LightningModule):
         )
 
         # planning loss
+        # [tzy] Imitation loss for paper
         ego_reg_loss, ego_cls_loss, collision_loss = self.get_planning_loss(
             data, trajectory, probability, valid_mask[:, 0], target[:, 0], train_num
         )
         if ref_free_trajectory is not None:
+            # [tzy] free trajectory loss for paper
             ego_ref_free_reg_loss = F.smooth_l1_loss(
                 ref_free_trajectory[:train_num],
                 target[:, 0, :, : ref_free_trajectory.shape[-1]],
@@ -223,6 +225,7 @@ class LightningTrainer(pl.LightningModule):
         best_trajectory = trajectory[torch.arange(bs), target_r_index, target_m_index]
 
         if self.use_collision_loss:
+            # [tzy] A Differentiable Auxiliary Loss for paper
             collision_loss = self.collision_loss(
                 best_trajectory, data["cost_maps"][:bs, :, :, 0].float()
             )
