@@ -63,6 +63,7 @@ class PlanningModel(TorchModuleWrapper):
 
         self.pos_emb = FourierEmbedding(3, dim, 64)
 
+        # [tzy] Using neighbor attention  for paper
         self.agent_encoder = AgentEncoder(
             state_channel=state_channel,
             history_channel=history_channel,
@@ -105,6 +106,7 @@ class PlanningModel(TorchModuleWrapper):
                 nn.Linear(dim, dim), nn.ReLU(), nn.Linear(dim, dim)
             )
 
+        # [tzy] for scenarios lacking reference lines
         if self.ref_free_traj:
             self.ref_free_decoder = MLPLayer(dim, 2 * dim, future_steps * 4)
 
@@ -151,11 +153,13 @@ class PlanningModel(TorchModuleWrapper):
 
         x = torch.cat([x_agent, x_polygon, x_static], dim=1)
 
-        # [tzy]Eav for paper
+        # [tzy]Due to the vectorization process, the input features are stripped of their 
+        #  global positional informa- tion. To counteract this loss, a global positional 
+        # embedding, denoted as PE
         pos = torch.cat([pos, static_pos], dim=1)
         pos_embed = self.pos_emb(pos)
 
-        # [tzy] Scene Encoding
+        # [tzy] 没有使用Eattr(agent type,lane speed limits, traffic light statuses)吗？
         key_padding_mask = torch.cat([key_padding_mask, static_key_padding], dim=-1)
         x = x + pos_embed
 
@@ -163,7 +167,7 @@ class PlanningModel(TorchModuleWrapper):
             x = blk(x, key_padding_mask=key_padding_mask, return_attn_weights=False)
         x = self.norm(x)
 
-        # [tzy] a prediction for each dynamic agent for paper
+        # [tzy] a prediction for each dynamic agent for paper,x[:, 1:A]表示除了自车之外的agent特征
         prediction = self.agent_predictor(x[:, 1:A])
 
         ref_line_available = data["reference_line"]["position"].shape[1] > 0
@@ -184,6 +188,7 @@ class PlanningModel(TorchModuleWrapper):
         if self.use_hidden_proj:
             out["hidden"] = self.hidden_proj(x[:, 0])
 
+        # [tzy]for scenarios lacking reference lines, x[:, 0] 是自车特征
         if self.ref_free_traj:
             ref_free_traj = self.ref_free_decoder(x[:, 0]).reshape(
                 bs, self.future_steps, 4

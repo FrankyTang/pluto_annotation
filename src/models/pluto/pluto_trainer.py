@@ -271,10 +271,12 @@ class LightningTrainer(pl.LightningModule):
         x_p = x_p[valid_mask]
         x_n = x_n[valid_mask]
 
+        # [tzy] 余弦相似度
         logits_ap = (x_a * x_p).sum(dim=1) / tempreture
         logits_an = (x_a * x_n).sum(dim=1) / tempreture
         labels = x_a.new_zeros(x_a.size(0)).long()
 
+        # [tzy]交叉熵损失：第一个位置是 positive；第二个位置是 negative；labels 全是 0，表示我们希望模型判定第一个 logit 更大。
         triplet_contrastive_loss = F.cross_entropy(
             torch.stack([logits_ap, logits_an], dim=1), labels
         )

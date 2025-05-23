@@ -145,6 +145,7 @@ class PlanningDecoder(nn.Module):
         r_valid_mask = data["reference_line"]["valid_mask"]
         r_key_padding_mask = ~r_valid_mask.any(-1)
 
+        # [tzy] 车道线编码为位置、矢量和方向
         r_feature = torch.cat(
             [
                 r_position - r_position[..., 0:1, :2],

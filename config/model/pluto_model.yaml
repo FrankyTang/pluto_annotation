@@ -2,7 +2,7 @@ _target_: src.models.pluto.pluto_model.PlanningModel
 _convert_: "all"
 
 dim: 128
-state_channel: 6
+state_channel: 6 #[x,y,yaml_x,yaml_y,v_x,v_y]
 polygon_channel: 6
 history_channel: 9
 history_steps: 21 #[tzy]过去21ms
